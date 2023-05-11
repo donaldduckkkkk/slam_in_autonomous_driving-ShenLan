@@ -65,52 +65,70 @@
 - 您应该将上述数据下载至./dataset/sad/目录下，这样许多默认参数可以正常工作。如果不那么做，您也可以手动指定这些文件路径。如果您硬盘容量不足，可以将其他硬盘的目录软链至此处。
 
 ## 编译
+(以UBUNTU20.04-ROS-NOETIC为例)
 
 - 本书推荐的编译环境是Ubuntu 20.04。更老的Ubuntu版本需要适配gcc编译器，主要是C++17标准。更新的Ubuntu则需要您自己安装对应的ROS版本。
-- 在编译本书代码之前，请先安装以下库（如果您机器上没有安装的话）
-    - ROS Noetic: http://wiki.ros.org/noetic/Installation/Ubuntu
-    - 使用以下指令安装其余的库
-    ```bash
-    sudo apt install -y ros-noetic-pcl-ros ros-noetic-velodyne-msgs libopencv-dev libgoogle-glog-dev libeigen3-dev libsuitesparse-dev libpcl-dev libyaml-cpp-dev libbtbb-dev libgmock-dev
-    ```
-    - Pangolin: https://github.com/stevenlovegrove/Pangolin
-    - 通过cmake, make安装本repo下的`thirdparty/g2o`库
-- 之后，使用通常的cmake, make方式就可以编译本书所有内容了。例如
-```bash
-mkdir build
-cd build
-cmake ..
-make -j8
-```
-- 编译后各章的可执行文件位于`bin`目录下
 
-### 适配Ubuntu18.04
+1.安装ros noetic：
+  http://wiki.ros.org/noetic/Installation/Ubuntu
+2.安装noetic相关的依赖库：
+  sudo apt install -y ros-noetic-pcl-ros ros-noetic-velodyne-msgs libopencv-dev libgoogle-glog-dev libeigen3-dev libsuitesparse-dev libpcl-dev libyaml-cpp-dev libbtbb-dev libgmock-dev
+3.安装Pangolin：
+  - https://github.com/stevenlovegrove/Pangolin
+  - git clone --recursive https://github.com/stevenlovegrove/Pangolin.git
+  - ./scripts/install_prerequisites.sh --dry-run recommended
+  - ./scripts/install_prerequisites.sh -m brew all（这步可能提示没有brew，因此需要安装homebrew）
+4.安装HomeBrew：
+  - sudo apt update
+  - sudo apt upgrade
+  - sudo apt install build-essential curl file git
+  - sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"(这步可能提示没有curl，再安装一个curl)
+5.安装curl:
+  - sudo apt-get update
+  - sudo apt install curl
+6.安装完curl继续安装HomeBrew:
+  - test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
+  - test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+  - test -r ~/.bash_profile && echo eval" ($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile
+  - echo "eval $($(brew --prefix)/bin/brew shellenv)" >>~/.profile
+  - brew --version（查看是否安装成功）
+7.安装完HomeBrew继续安装Pangolin：
+  - ./scripts/install_prerequisites.sh -m brew all
+  - cd ~/根目录/Pangolin
+  - ./scripts/install_prerequisites.sh recommended
+  - cmake -B build
+  - cmake --build build
+  - cmake -B build -GNinja(如果提示没有Ninja：sudo apt install ninja-build)
+  - cmake --build build
+  - cmake --build build -t pypangolin_pip_install
+  - ctest(可能会提示没有catch2)
+8.安装Catch2：
+  - git clone https://github.com/catchorg/Catch2.git
+  - cd Catch2
+  - cmake -Bbuild -H. -DBUILD_TESTING=OFF
+  - sudo cmake --build build/ --target install
+9.重新运行ctest
+  - ctest
+10.编译g2o：
+  - cd slam_in_autonomous_driving/thirdparty/g2o
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make -j
+11.编译整个项目
+  - cd ../../../
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make -j
+12.验证是否编译成功
+  - ./bin/motion
 
-为了在Ubuntu18.04上编译运行，需要安装gcc-9，并且使用对应版本的TBB
+## 可能遇到的问题
 
-**安装gcc-9**
-```bash
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-sudo update-alternatives --remove-all gcc
-sudo update-alternatives --remove-all g++
+1.显示 #include “g2o/config.h”报错，将/slam_in_autonomous_driving/thirdparty/g2o/build/g2o下的config.h复制到/slam_in_autonomous_driving/thirdparty/g2o/g2o，重新编译
+2.剩下问题同官方上传的环境配置（更新版）.pdf
 
-#命令最后的1和10是优先级，如果使用auto选择模式，系统将默认使用优先级高的
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 1
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 10
 
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 1
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 10
-```
 
-**检查版本**
-```bash
-g++ -v
-```
 
-**编译程序**
-```bash
-mkdir build
-cd build
-cmake .. -DBUILD_WITH_UBUNTU1804=ON
-make -j8
-```
