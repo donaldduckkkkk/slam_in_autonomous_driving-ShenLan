@@ -114,18 +114,3 @@ cd build
 cmake .. -DBUILD_WITH_UBUNTU1804=ON
 make -j8
 ```
-
-## TODO项
-
-- 一部分插图需要授权
-- 将UI里的不必要信息去除(右侧面板)
-- 整理数据集（增加几个seq）
-- 第9章前端第0个关键帧貌似有问题
-- LioPreiteg在某些数据集上不收敛
-
-## NOTES
-
-- [已确认] ULHK的IMU似乎和别家的不一样，已经去了gravity
-- [已确认] NCLT的IMU在转包的时候转成了Lidar系，于是Lidar与IMU之间没有旋转的外参（本来Lidar是转了90度的），现在Lidar是X左Y后Z下，原车是X前Y右Z下。本书使用的NCLT数据均基于点云系,
-  IMU的杆臂被忽略。
-- [已确认] NCLT的rtk fix并不是非常稳定，平均误差在米级
