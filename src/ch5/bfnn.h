@@ -11,7 +11,7 @@
 #include <thread>
 
 namespace sad {
-// sad
+
 /**
  * Brute-force Nearest Neighbour
  * @param cloud 点云
