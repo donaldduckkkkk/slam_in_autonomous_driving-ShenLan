@@ -1,5 +1,5 @@
 add_subdirectory(msg)
-
+# 创建可执行文件
 add_library(${PROJECT_NAME}.common
         io_utils.cc
         timer/timer.cc
