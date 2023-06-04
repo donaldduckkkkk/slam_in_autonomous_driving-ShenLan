@@ -27,7 +27,7 @@ add_library(${PROJECT_NAME}.ch5
         octo_tree.cc
         )
 target_link_libraries(${PROJECT_NAME}.ch5
-        tbb
+        #tbb
         )
 
 add_executable(linear_fitting linear_fitting.cc)
@@ -42,5 +42,5 @@ ADD_EXECUTABLE(test_nn test_nn.cc)
 ADD_TEST(test_nn test_bfnn)
 
 target_link_libraries(test_nn
-        gtest pthread glog gflags ${PROJECT_NAME}.ch5 ${PROJECT_NAME}.common ${PCL_LIBRARIES} tbb
+        GTest::gtest pthread glog gflags ${PROJECT_NAME}.ch5 ${PROJECT_NAME}.common ${PCL_LIBRARIES} #tbb
         )

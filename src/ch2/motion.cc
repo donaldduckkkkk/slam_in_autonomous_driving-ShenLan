@@ -18,6 +18,8 @@
 // 初始化参数时，可以通过 --参数名=参数值 来设置参数
 DEFINE_double(angular_velocity, 10.0, "角速度（角度）制");
 DEFINE_double(linear_velocity, 5.0, "车辆前进线速度 m/s");
+DEFINE_double(init_height, 100.0, "初始高度 m");
+DEFINE_double(gravitational, -9.8, "重力加速度 m/s^2");
 DEFINE_bool(use_quaternion, false, "是否使用四元数计算");
 
 int main(int argc, char** argv) {
@@ -49,8 +51,12 @@ int main(int argc, char** argv) {
 
     while (ui.ShouldQuit() == false) {
         // 更新自身位置
+        v_body[2] = FLAGS_gravitational* dt;
         Vec3d v_world = pose.so3() * v_body;
-        pose.translation() += v_world * dt;
+
+        pose.translation()[0] += v_world[0] * dt;
+        pose.translation()[1] += v_world[1] * dt;
+        pose.translation()[2] += v_body[2] * dt + 0.5 * FLAGS_gravitational * dt * dt;
 
         // 更新自身旋转
         if (FLAGS_use_quaternion) {
