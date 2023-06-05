@@ -20,52 +20,6 @@
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb"
-        },
-        {
-            "name": "C++: run_imu_integration",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "/home/you/文档/slam_in_autonomous_driving-ShenLan/bin/run_imu_integration",
-            "args": [
-                "--imu_txt_path",
-                "/home/you/文档/slam_in_autonomous_driving-ShenLan/data/ch3/10.txt",
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "为 gdb 启用整齐打印",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "miDebuggerPath": "/usr/bin/gdb"
-        },
-        {
-            "name": "C++: process_gnss",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "/home/you/文档/slam_in_autonomous_driving-ShenLan/bin/process_gnss",
-            "args": [
-                "--txt_path",
-                "/home/you/文档/slam_in_autonomous_driving-ShenLan/data/ch3/10.txt"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "为 gdb 启用整齐打印",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
 }
