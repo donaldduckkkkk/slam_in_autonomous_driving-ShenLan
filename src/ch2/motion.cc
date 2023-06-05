@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     // 为什么本体系下还有速度，不应该是相对于世界坐标系的速度吗？
     Vec3d v_body(FLAGS_linear_velocity, 0, 0);  // 本体系速度 前左上
     const double dt = 0.05;                     // 每次更新的时间
-
+ 
     while (ui.ShouldQuit() == false) {
         // 更新自身位置
         v_body[2] = FLAGS_gravitational* dt;

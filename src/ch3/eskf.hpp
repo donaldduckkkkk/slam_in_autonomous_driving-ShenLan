@@ -160,7 +160,7 @@ class ESKF {
     void UpdateAndReset() {
         p_ += dx_.template block<3, 1>(0, 0);
         v_ += dx_.template block<3, 1>(3, 0);
-        R_ = SO3::exp(dx_.template block<3, 1>(6, 0)) * R_;
+        R_ = R_ * SO3::exp(dx_.template block<3, 1>(6, 0));
 
         if (options_.update_bias_gyro_) {
             bg_ += dx_.template block<3, 1>(9, 0);
@@ -215,12 +215,6 @@ class ESKF {
 using ESKFD = ESKF<double>;
 using ESKFF = ESKF<float>;
 
-<<<<<<< HEAD
-DEFINE_bool(with_F_update_error_state, true, "是否使用F矩阵来描述误差状态的更新");
-DEFINE_bool(with_right_multipy_model, false, "默认使用右乘模型计算运动方程");
-
-=======
->>>>>>> parent of 7f42bf0... chapter2 homework
 template <typename S>
 bool ESKF<S>::Predict(const IMU& imu) {
     assert(imu.timestamp_ >= current_time_);
