@@ -15,7 +15,6 @@
 #include <glog/logging.h>
 #include <iomanip>
 
-
 namespace sad {
 
 /**
@@ -26,7 +25,6 @@ namespace sad {
  * 变量顺序：p, v, R, bg, ba, grav，与书本对应
  * @tparam S    状态变量的精度，取float或double
  */
-
 template <typename S = double>
 class ESKF {
    public:
@@ -118,7 +116,6 @@ class ESKF {
     /// 设置状态X
     void SetX(const NavStated& x, const Vec3d& grav) {
         current_time_ = x.timestamp_;
-using ESKFF = ESKF<float>;current_time_ = x.timestamp_;
         R_ = x.R_;
         p_ = x.p_;
         v_ = x.v_;
@@ -200,14 +197,6 @@ using ESKFF = ESKF<float>;current_time_ = x.timestamp_;
     /// 误差状态
     Vec18T dx_ = Vec18T::Zero();
 
-    VecT dp_prep = VecT::Zero();
-    VecT dv_prep = VecT::Zero();
-    VecT dtheta_prep = VecT::Zero();
-    VecT dbg_prep = VecT::Zero();
-    VecT dba_prep = VecT::Zero();
-    VecT dg_prep = VecT::Zero();
-
-
     /// 协方差阵
     Mat18T cov_ = Mat18T::Identity();
 
@@ -226,9 +215,12 @@ using ESKFF = ESKF<float>;current_time_ = x.timestamp_;
 using ESKFD = ESKF<double>;
 using ESKFF = ESKF<float>;
 
+<<<<<<< HEAD
 DEFINE_bool(with_F_update_error_state, true, "是否使用F矩阵来描述误差状态的更新");
 DEFINE_bool(with_right_multipy_model, false, "默认使用右乘模型计算运动方程");
 
+=======
+>>>>>>> parent of 7f42bf0... chapter2 homework
 template <typename S>
 bool ESKF<S>::Predict(const IMU& imu) {
     assert(imu.timestamp_ >= current_time_);
@@ -262,64 +254,11 @@ bool ESKF<S>::Predict(const IMU& imu) {
     F.template block<3, 3>(6, 6) = SO3::exp(-(imu.gyro_ - bg_) * dt).matrix();     // theta 对 theta
     F.template block<3, 3>(6, 9) = -Mat3T::Identity() * dt;                        // theta 对 bg
 
-    //左乘模型的运动方程
-    Mat18T Fl = Mat18T::Identity();                                                 // 主对角线
-    Fl.template block<3, 3>(0, 3) = Mat3T::Identity() * dt;                         // p 对 v
-    Fl.template block<3, 3>(3, 6) = -SO3::hat(R_.matrix() * (imu.acce_ - ba_)) * dt;// v对theta
-    Fl.template block<3, 3>(3, 12) = -R_.matrix() * dt;                             // v 对 ba
-    Fl.template block<3, 3>(3, 15) = Mat3T::Identity() * dt;                        // v 对 g
-    Fl.template block<3, 3>(6, 9) = -R_.matrix() * dt;                              // theta 对 bg
-
-    //error state 递推
-    //写成散装模式
-    Vec18T dx = Vec18T::Identity();
-    dx.template block<3, 1>(0, 0) = dp_prep + dv_prep * dt;
-    dx.template block<3, 1>(3, 0) = dv_prep + (-R_.matrix() * SO3::hat(imu.acce_ - ba_) * dtheta_prep - R_.matrix() * dba_prep + dg_prep) * dt;
-    dx.template block<3, 1>(6, 0) = SO3::exp(-(imu.gyro_ - bg_) * dt) * dtheta_prep - dbg_prep * dt;
-    dx.template block<3, 1>(9, 0) = dbg_prep;
-    dx.template block<3, 1>(12, 0) = dba_prep;
-    dx.template block<3, 1>(15, 0) = dg_prep;
-
-    //左乘模式的运动方程
-    Vec18T dxl = Vec18T::Identity();
-    dxl.template block<3, 1>(0, 0) = dp_prep + dv_prep * dt;
-    dxl.template block<3, 1>(3, 0) = dv_prep + (-SO3::hat(R_.matrix() * (imu.acce_ - ba_)) * dtheta_prep - R_.matrix() * dba_prep + dg_prep) * dt;
-    dxl.template block<3, 1>(6, 0) = -R_.matrix() * dbg_prep * dt;
-    dxl.template block<3, 1>(9, 0) = dbg_prep;
-    dxl.template block<3, 1>(12, 0) = dba_prep;
-    dxl.template block<3, 1>(15, 0) = dg_prep;
-
     // mean and cov prediction
-    if(FLAGS_with_right_multipy_model)
-    {
-        if (FLAGS_with_F_update_error_state)
-        {
-            dx_ = F * dx_;  // 这行其实没必要算，dx_在重置之后应该为零，因此这步可以跳过，但F需要参与Cov部分计算，所以保留
-        }
-        else
-        {
-            dx_ = dx;
-        }
-        cov_ = F * cov_.eval() * F.transpose() + Q_;
-    }
-    else
-    {
-        if (FLAGS_with_F_update_error_state)
-        {
-            dx_ = Fl * dx_;  
-        }
-        else
-        {
-            dx_ = dxl;
-        }
-        cov_ = Fl * cov_.eval() * Fl.transpose() + Q_;
-    }
-
+    dx_ = F * dx_;  // 这行其实没必要算，dx_在重置之后应该为零，因此这步可以跳过，但F需要参与Cov部分计算，所以保留
+    cov_ = F * cov_.eval() * F.transpose() + Q_;
     current_time_ = imu.timestamp_;
     return true;
-
-
-
 }
 
 template <typename S>
