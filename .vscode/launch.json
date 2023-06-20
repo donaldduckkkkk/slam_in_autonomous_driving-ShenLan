@@ -42,6 +42,29 @@
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "C++: run_gins_pre_integ",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/you/文档/slam_in_autonomous_driving-ShenLan/bin/run_gins_pre_integ",
+            "args": [
+                "--txt_path",
+                "./data/ch3/10.txt"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
 }
