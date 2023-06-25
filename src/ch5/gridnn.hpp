@@ -33,6 +33,7 @@ class GridNN {
 
         // for 3D
         NEARBY6,  // 上下左右前后
+        NEARBY14, // 上下左右前后，包含8个角
     };
 
     /**
@@ -130,6 +131,17 @@ void GridNN<3>::GenerateNearbyGrids() {
     } else if (nearby_type_ == NearbyType::NEARBY6) {
         nearby_grids_ = {KeyType(0, 0, 0),  KeyType(-1, 0, 0), KeyType(1, 0, 0), KeyType(0, 1, 0),
                          KeyType(0, -1, 0), KeyType(0, 0, -1), KeyType(0, 0, 1)};
+    } else if (nearby_type_ == NearbyType::NEARBY14){
+        nearby_grids_ == {
+            KeyType( 0,  0,  0),  
+            KeyType(-1,  0,  0),   KeyType( 1,  0,  0),   // 左右
+            KeyType( 0,  1,  0),   KeyType( 0, -1,  0),   // 前后
+            KeyType( 0,  0, -1),   KeyType( 0,  0,  1),   // 上下
+            KeyType(-1, -1, -1),   KeyType(-1,  1, -1),   // 八个角
+            KeyType(-1, -1,  1),   KeyType(-1,  1,  1), 
+            KeyType( 1, -1, -1),   KeyType( 1,  1, -1), 
+            KeyType( 1, -1,  1),   KeyType( 1,  1,  1)
+        }
     }
 }
 
