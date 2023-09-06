@@ -1,0 +1,6 @@
+#ifndef SELF_PROCESS_GNSS_CC
+#define SELF_PROCESS_GNSS_CC
+
+
+
+#endif // SELF_PROCESS_GNSS_CC
