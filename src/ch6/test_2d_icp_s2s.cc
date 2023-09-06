@@ -11,7 +11,6 @@
 
 DEFINE_string(bag_path, "./dataset/sad/2dmapping/floor1.bag", "数据包路径");
 DEFINE_string(method, "point2point", "2d icp方法：point2point/point2plane");
-
 /// 测试从rosbag中读取2d scan并plot的结果
 /// 通过选择method来确定使用点到点或点到面的ICP
 int main(int argc, char** argv) {
