@@ -119,7 +119,7 @@ class Edge_PriorPose : public g2o::BaseMultiEdge<15, Eigen::Matrix<double, 15, 1
         setInformation(info);
         state_ = state;
     };
-    sad::NavStated state_;
+    // sad::NavStated state_;
     virtual bool read(std::istream& is) { return false; }
     virtual bool write(std::ostream& os) const { return false; }
     virtual void computeError() override {
@@ -137,7 +137,7 @@ class Edge_PriorPose : public g2o::BaseMultiEdge<15, Eigen::Matrix<double, 15, 1
         _error << er, ep, ev, ebg, eba;
     }
     virtual void linearizeOplus() {
-        const auto* vp = dynamic_cast<const VertexPose*>(_vertices[0]);
+        const auto* vp = dynamic_cast<const Vertex_pose*>(_vertices[0]);
         const Vec3d er = SO3(state_.R_.matrix().transpose() * vp->estimate().so3().matrix()).log();
 
         _jacobianOplus[0].setZero();
@@ -241,5 +241,71 @@ class Edge_gnss : public g2o::BaseUnaryEdge<6, SE3, Vertex_pose> {
    private:
 };
 
+// auto edge_inertial = new EdgeInertial(pre_integ_, options_.gravity_);
+// edge_inertial->setVertex(0, v0_pose);
+// edge_inertial->setVertex(1, v0_vel);
+// edge_inertial->setVertex(2, v0_bg);
+// edge_inertial->setVertex(3, v0_ba);
+// edge_inertial->setVertex(4, v1_pose);
+// edge_inertial->setVertex(5, v1_vel);
+// auto* rk = new g2o::RobustKernelHuber();
+// rk->setDelta(200.0);
+// edge_inertial->setRobustKernel(rk);
+// optimizer.addEdge(edge_inertial);
+
+class Edge_imupre : public g2o::BaseMultiEdge<9, Eigen::Matrix<double, 9, 1>> {
+   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    Edge_imupre(std::shared_ptr<IMUPreintegration> preinteg, const Vec3d& gravity, double weight = 1.0) {
+        resize(6);
+        preint_ = preinteg;
+        grav_ = gravity;
+        dt_ = preint_->dt_;
+    }
+    virtual bool read(std::ofstream& is){};
+    virtual bool write(std::ifstream& os) const {};
+    virtual void computeError() {
+        const auto* vp1 = dynamic_cast<const Vertex_pose*>(_vertices[0]);
+        const auto* vv1 = dynamic_cast<const Vertex_v*>(_vertices[1]);
+        const auto* vba1 = dynamic_cast<const Vector_ba*>(_vertices[2]);
+        const auto* vbg1 = dynamic_cast<const Vector_bg*>(_vertices[3]);
+        const auto* vp2 = dynamic_cast<const Vertex_pose*>(_vertices[4]);
+        const auto* vv2 = dynamic_cast<const Vertex_v*>(_vertices[5]);
+
+        // auto dr = vp1->estimate().so3().inverse() * vp2->estimate().so3();
+        // auto dp = vp2->estimate().translation() - vp1->estimate().translation();
+        // auto dv = vv2->estimate() - vv1->estimate();
+
+        auto bg = vbg1->estimate();
+        auto ba = vba1->estimate();
+
+        const SO3 dR = preint_->GetDeltaRotation(bg);
+        const auto dv = preint_->GetDeltaVelocity(bg, ba);
+        const auto dp = preint_->GetDeltaPosition(bg, ba);
+
+        /// 预积分误差项（4.41）
+        const auto er = (dR.inverse() * vp1->estimate().so3().inverse() * vp2->estimate().so3()).log();
+        auto RiT = vp1->estimate().so3().inverse().matrix();
+        const auto ev = RiT * (vv2->estimate() - vv1->estimate() - grav_ * dt_) - dv;
+        const auto ep = RiT * (vp2->estimate().translation() - vp1->estimate().translation() - vv1->estimate() * dt_ -
+                               grav_ * dt_ * dt_ / 2) -
+                        dp;
+        _error << er, ev, ep;
+    }
+    // virtual void linearizeOplus() {
+    //     const auto* vp1 = dynamic_cast<const Vertex_pose*>(_vertices[0]);
+    //     const auto* vv1 = dynamic_cast<const Vertex_v*>(_vertices[1]);
+    //     const auto* vba1 = dynamic_cast<const Vector_ba*>(_vertices[2]);
+    //     const auto* vbg1 = dynamic_cast<const Vector_bg*>(_vertices[3]);
+    //     const auto* vp2 = dynamic_cast<const Vertex_pose*>(_vertices[4]);
+    //     const auto* vv2 = dynamic_cast<const Vertex_v*>(_vertices[5]);
+    // }
+
+   private:
+    double dt_;
+    std::shared_ptr<IMUPreintegration> preint_ = nullptr;
+    Vec3d grav_;
+};
 }  // namespace sad
 #endif  // SLAM_IN_AUTO_DRIVING_G2O_TYPES_H

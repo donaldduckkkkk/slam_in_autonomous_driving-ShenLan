@@ -8,13 +8,8 @@
 
 #include "ch3/eskf.hpp"
 #include "ch3/static_imu_init.h"
-<<<<<<< HEAD
 #include "ch4/g2o_types.h"
 #include "ch4/imu_preintegration.h"
-=======
-#include "ch4/imu_preintegration.h"
-#include "ch4/g2o_types.h"
->>>>>>> 0b1fb2ed7a6448522874be3151bb6eb176bef0d7
 #include "common/g2o_types.h"
 #include "common/io_utils.h"
 
@@ -197,10 +192,7 @@ TEST(PREINTEGRATION_TEST, ESKF_TEST) {
           eskf.Predict(imu);
 
           if (preinteg) {
-<<<<<<< HEAD
               // 在 eskf.Predict(imu); current_time上一次imu的时间
-=======
->>>>>>> 0b1fb2ed7a6448522874be3151bb6eb176bef0d7
               preinteg->Integrate(imu, imu.timestamp_ - current_time);
 
               if (last_state_set) {
