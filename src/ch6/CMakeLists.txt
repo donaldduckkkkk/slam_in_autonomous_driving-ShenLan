@@ -31,8 +31,17 @@ target_link_libraries(test_2dlidar_io
 add_executable(test_2d_icp_s2s
         test_2d_icp_s2s.cc
         )
-
+add_executable(self_test_2d_icp_s2s
+        self_test_2d_icp_s2s.cc
+        )
 target_link_libraries(test_2d_icp_s2s
+        ${PROJECT_NAME}.ch6
+        ${OpenCV_LIBS}
+        ${catkin_LIBRARIES}
+        glog gflags
+        ${PCL_LIBRARIES}
+        )
+target_link_libraries(self_test_2d_icp_s2s
         ${PROJECT_NAME}.ch6
         ${OpenCV_LIBS}
         ${catkin_LIBRARIES}

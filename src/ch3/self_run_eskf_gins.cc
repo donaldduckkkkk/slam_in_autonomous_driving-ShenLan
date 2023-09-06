@@ -73,7 +73,7 @@ class IMU {
     Eigen::Vector3d init_ba_;
     double last_timestamp_;
     bool init_flag_ = false;
-    std::map(double, std::pair<Eigen::Vector3d, Eigen::Vector3d>) imu_vector;
+    std::map<double, std::pair<Eigen::Vector3d, Eigen::Vector3d>> imu_vector;
 };
 class ODOM {
    public:
@@ -81,11 +81,11 @@ class ODOM {
 };
 class ESKF {
    public:
-    // eskf();
+    ESKF(){};
     void predict() {}
     void update();
 
-   private:
+    //    private:
     IMU imu;
     GNSS gnss;
     ODOM odom;
@@ -114,22 +114,22 @@ int main(int argc, char** argv) {
 
     ESKF eskf;
     eskf.imu = IMU(gravity, init_bg, init_ba);
-    eskf.gnss = GNSS(antenna_angle, antenna_pox_x, antenna_pox_y);
+    eskf.gnss = GNSS(FLAGS_antenna_angle, FLAGS_antenna_pox_x, FLAGS_antenna_pox_y);
     while (ui.ShouldQuit()) {
-        string line;
+        std::string line;
         std::getline(fin, line);
         if (line.empty()) {
             break;
         }
         std::stringstream ss(line);
-        string type;
+        std::string type;
         ss >> type;
         if (type == "IMU") {
             double timestamp;
             ss >> timestamp;
             Eigen::Vector3d acc, gyro;
             ss >> gyro[0] >> gyro[1] >> gyro[2] >> acc[0] >> acc[1] >> acc[2];
-            imu.addimu(timestamp, acc, gyro);
+            eskf.imu.addimu(timestamp, acc, gyro);
         } else if (type == "GNSS") {
             double timestamp;
             ss >> timestamp;
@@ -139,12 +139,12 @@ int main(int argc, char** argv) {
             ss >> heading;
             bool heading_valid;
             ss >> heading_valid;
-            gnss.addgnss(timestamp, pos, heading, heading_valid);
+            eskf.gnss.addgnss(timestamp, pos, heading, heading_valid);
         } else if (type == "ODOM") {
             continue;
         }
     }
-    ui.quit();
+    ui.Quit();
     return 0;
 }
 

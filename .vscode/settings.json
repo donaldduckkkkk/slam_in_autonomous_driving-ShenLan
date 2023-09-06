@@ -1,4 +1,17 @@
 {
+    "files.autoSave": "afterDelay",
+    // code snippet
+    "editor.suggestSelection": "recentlyUsedByPrefix",
+    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+    // 新开窗口
+    "workbench.startupEditor": "newUntitledFile",
+    "workbench.editor.enablePreview": false,
+    // 开启 material icons
+    "workbench.iconTheme": "material-icon-theme",
+    // 文件夹紧凑模式显示
+    "explorer.compactFolders": false,
+    // inline complete
+    "editor.inlineSuggest.enabled": true,
     "files.associations": {
         "array": "cpp",
         "atomic": "cpp",
