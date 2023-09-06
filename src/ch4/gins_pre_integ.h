@@ -107,7 +107,6 @@ class GinsPreInteg {
     GNSS this_gnss_;
 
     IMU last_imu_;    // 上时刻IMU
-    Odom this_odom_;  // 上时刻odom
     Odom last_odom_;  // 上时刻odom
     bool last_odom_set_ = false;
 

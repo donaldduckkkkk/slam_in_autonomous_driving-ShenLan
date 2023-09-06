@@ -40,7 +40,8 @@ void IMUPreintegration::Integrate(const IMU &imu, double dt) {
     B.block<3, 3>(3, 3) = dR_.matrix() * dt;
     B.block<3, 3>(6, 3) = 0.5f * dR_.matrix() * dt2;
 
-    // 更新各雅可比，见式(4.39)
+    // 更新各雅可比，见式(4.39)步兵a
+    // ？ 疑问：这些雅可比在新来的IMU数据不应该初始化为0吗？
     dP_dba_ = dP_dba_ + dV_dba_ * dt - 0.5f * dR_.matrix() * dt2;                      // (4.39d)
     dP_dbg_ = dP_dbg_ + dV_dbg_ * dt - 0.5f * dR_.matrix() * dt2 * acc_hat * dR_dbg_;  // (4.39e)
     dV_dba_ = dV_dba_ - dR_.matrix() * dt;                                             // (4.39b)

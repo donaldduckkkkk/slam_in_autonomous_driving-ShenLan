@@ -17,7 +17,7 @@ bool StaticIMUInit::AddIMU(const IMU& imu) {
     if (options_.use_speed_for_static_checking_ && !is_static_) {
         LOG(WARNING) << "等待车辆静止";
         init_imu_deque_.clear();
-        return false;
+        return false ;
     }
 
     if (init_imu_deque_.empty()) {

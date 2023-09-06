@@ -14,7 +14,11 @@
 #include <g2o/solvers/eigen/linear_solver_eigen.h>
 
 namespace sad {
+<<<<<<< HEAD
+
+=======
 int num = 0;
+>>>>>>> 0b1fb2ed7a6448522874be3151bb6eb176bef0d7
 void GinsPreInteg::AddImu(const IMU& imu) {
     if (first_gnss_received_ && first_imu_received_) {
         pre_integ_->Integrate(imu, imu.timestamp_ - last_imu_.timestamp_);
@@ -77,6 +81,10 @@ void GinsPreInteg::AddGnss(const GNSS& gnss) {
     }
 
     // 积分到GNSS时刻
+<<<<<<< HEAD
+    // current_time_ 是在addimu也就是last_imu的时间戳，同时也在addgnss中更新，始终为最新的预积分的起始时间
+=======
+>>>>>>> 0b1fb2ed7a6448522874be3151bb6eb176bef0d7
     pre_integ_->Integrate(last_imu_, gnss.unix_time_ - current_time_);
 
     current_time_ = gnss.unix_time_;
@@ -91,17 +99,10 @@ void GinsPreInteg::AddGnss(const GNSS& gnss) {
 void GinsPreInteg::AddOdom(const sad::Odom& odom) {
     last_odom_ = odom;
     last_odom_set_ = true;
-    this_frame_ = std::make_shared<NavStated>(current_time_);
-    pre_integ_->Integrate(last_imu_, odom.timestamp_ - current_time_);
-
-    current_time_ = odom.timestamp_;
-    *this_frame_ = pre_integ_->Predict(*last_frame_, options_.gravity_);
-    Optimize();
-    last_frame_ = this_frame_;
 }
 
 void GinsPreInteg::Optimize() {
-    if (pre_integ_->dt_ < 1e-2) {
+    if (pre_integ_->dt_ < 1e-3) {
         // 未得到积分
         return;
     }
@@ -113,9 +114,6 @@ void GinsPreInteg::Optimize() {
         g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm(solver);
-    num += 1;
-    if (num == 60) sleep(1000);
-    std::cout << "Optimize start" << std::endl;
     // 上时刻顶点， pose, v, bg, ba
     auto v0_pose = new VertexPose();
     v0_pose->setId(0);
@@ -223,6 +221,13 @@ void GinsPreInteg::Optimize() {
         last_odom_set_ = false;
     }
 
+<<<<<<< HEAD
+    optimizer.setVerbose(options_.verbose_);
+    optimizer.initializeOptimization();
+    optimizer.optimize(20);
+
+    if (options_.verbose_) {
+=======
     // optimizer.setVerbose(options_.verbose_);
     optimizer.setVerbose(true);
     optimizer.initializeOptimization();
@@ -230,13 +235,18 @@ void GinsPreInteg::Optimize() {
 
     // if (options_.verbose_) {
     {
+>>>>>>> 0b1fb2ed7a6448522874be3151bb6eb176bef0d7
         // 获取结果，统计各类误差
         LOG(INFO) << "chi2/error: ";
         LOG(INFO) << "preintegration: " << edge_inertial->chi2() << "/" << edge_inertial->error().transpose();
         // LOG(INFO) << "gnss0: " << edge_gnss0->chi2() << ", " << edge_gnss0->error().transpose();
         LOG(INFO) << "gnss1: " << edge_gnss1->chi2() << ", " << edge_gnss1->error().transpose();
         LOG(INFO) << "bias: " << edge_gyro_rw->chi2() << "/" << edge_acc_rw->error().transpose();
+<<<<<<< HEAD
+        // LOG(INFO) << "prior: " << edge_prior->chi2() << "/" << edge_prior->error().transpose();
+=======
         LOG(INFO) << "prior: " << edge_prior->chi2() << "/" << edge_prior->error().transpose();
+>>>>>>> 0b1fb2ed7a6448522874be3151bb6eb176bef0d7
         if (edge_odom) {
             LOG(INFO) << "body vel: " << (v1_pose->estimate().so3().inverse() * v1_vel->estimate()).transpose();
             LOG(INFO) << "meas: " << vel_odom.transpose();
@@ -257,6 +267,10 @@ void GinsPreInteg::Optimize() {
     this_frame_->ba_ = v1_ba->estimate();
 
     // 重置integ
+<<<<<<< HEAD
+    //
+=======
+>>>>>>> 0b1fb2ed7a6448522874be3151bb6eb176bef0d7
     options_.preinteg_options_.init_bg_ = this_frame_->bg_;
     options_.preinteg_options_.init_ba_ = this_frame_->ba_;
     pre_integ_ = std::make_shared<IMUPreintegration>(options_.preinteg_options_);
