@@ -275,7 +275,7 @@ int main(int argc, char** argv) {
                 icp_my.SetSource(current_scan);
 
                 SE2 pose_init;
-                icp.AlignGaussNewton(pose_init);
+                icp.AlignGaussNewtonPoint2Plane(pose_init);
 
                 cv::Mat image;
                 sad::Visualize2DScan(last_scan, SE2(), image, Vec3b(255, 0, 0));  // target是蓝的
