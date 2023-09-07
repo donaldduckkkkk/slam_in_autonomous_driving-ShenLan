@@ -25,8 +25,8 @@ class ICP_my {
     void SetSource(Scan2d::Ptr scan_sou) { scan_sou_ = scan_sou; }
     bool AlignGaussNewton(Sophus::SE2d pose);
     bool AlignGaussNewtonPoint2Plane(Sophus::SE2d pose);
-    void line_fitting(std::vector<Eigen::Vector3d> data, Eigen::Vector3d lineinit, Eigen::Vector3d& line,
-                      double threshold = 0.2);
+    bool line_fitting2d(std::vector<Eigen::Vector2d> data, Eigen::Vector2d lineinit, Eigen::Vector2d& line,
+                        double threshold = 0.2);
     void BuildTree();
     Scan2d::Ptr scan_tar_;
     Scan2d::Ptr scan_sou_;
@@ -105,15 +105,21 @@ bool ICP_my::AlignGaussNewton(Sophus::SE2d pose) {
 
     return true;
 }
-void ICP_my::line_fitting(std::vector<Eigen::Vector3d> data, Eigen::Vector3d lineinit, Eigen::Vector3d& line,
-                          double threshold = 0.2) {
-    Eigen::Vector3d origin = std::accumulate(data.begin(), data.end(), Eigen::Vector3d(0, 0, 0)) / data.size();
-    const int num = data.size();
-    Eigen::MatrixXd Y(num, 3);
-    for (int i = 0; i < data.size(); i++) {
-        data[i] = data[i] - origin;
+bool ICP_my::line_fitting2d(std::vector<Eigen::Vector2d> data, Eigen::Vector2d lineinit, Eigen::Vector2d& line,
+                            double threshold = 0.2) {
+    if (data.size() < 2) {
+        return false;
     }
-    Eigen::JacobiSVD(Eigen::Matrix3d::Zero(), Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::Vector3d origin = std::accumulate(data.begin(), data.end(), Eigen::Vector2d(0, 0)) / data.size();
+    const int num = data.size();
+    Eigen::MatrixXd Y(num, 2);
+    for (int i = 0; i < data.size(); i++) {
+        Y.row(i) = (data[i] - origin.transpose());
+    }
+    Eigen::JacobiSVD svd(Y, Eigen::ComputeThinV);
+    // Eigen::JacobiSVD svd(A, Eigen::ComputeThinV);
+    line = svd.matrixV().col(2);
+    return true;
 }
 bool ICP_my::AlignGaussNewtonPoint2Plane(Sophus::SE2d pose) {
     pcl::PointCloud<pcl::PointXY>::Ptr cloud(new pcl::PointCloud<pcl::PointXY>);
@@ -126,8 +132,8 @@ bool ICP_my::AlignGaussNewtonPoint2Plane(Sophus::SE2d pose) {
     for (int iter = 0; iter < iter_num; iter++) {
         Eigen::Matrix<double, 3, 3> H = Eigen::Matrix<double, 3, 3>::Zero();
         Eigen::Matrix<double, 3, 1> b = Eigen::Matrix<double, 3, 1>::Zero();
-        Eigen::Matrix<double, 3, 2> J = Eigen::Matrix<double, 3, 2>::Zero();
-        Eigen::Matrix<double, 2, 1> e = Eigen::Matrix<double, 2, 1>::Zero();
+        Eigen::Matrix<double, 3, 1> J = Eigen::Matrix<double, 3, 2>::Zero();
+        double e = 0;
         for (int i = 0; i < scan_sou_->ranges.size(); i++) {
             if (scan_sou_->ranges[i] < scan_sou_->range_min || scan_sou_->ranges[i] > scan_sou_->range_max) continue;
             double real_angle = scan_sou_->angle_min + i * scan_sou_->angle_increment;
@@ -145,7 +151,21 @@ bool ICP_my::AlignGaussNewtonPoint2Plane(Sophus::SE2d pose) {
             if (kdtree.nearestKSearch(pt, k, nn_idx, nn_squared_distance) > 0) {
                 // todo 改成直线拟合
                 if (nn_idx.size() < 5) continue;
+                std::vector<Eigen::Vector2d> data;
+                Eigen::Vector2d init = Eigen::Vector2d(0, 0);
+                Eigen::Vector2d line = Eigen::Vector2d(0, 0);
 
+                if (line_fitting2d(data, init, line)) {
+                    std::cout << "line:" << line << std::endl;
+                    J << line[0], line[1],
+                        -line[0] * scan_sou_->ranges[i] * std::sin(real_angle + theta) +
+                            line[1] * scan_sou_->ranges[i] * std::cos(real_angle + theta);
+                    H += J * J.transpose();
+                    e = line[0] * pt[0] + line[1] * pt[1] + line[2];
+                    b += -J * e;
+                    cost += e * e;
+                    num++;
+                };
                 // for (size_t i = 0; i < nn_idx.size(); ++i) {
 
                 // if (!nn_squared_distance[i] < 0.01) {
