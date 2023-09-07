@@ -9,10 +9,11 @@
 #include <pcl/search/kdtree.h>
 #include <opencv2/imgproc.hpp>
 #include <pcl/search/impl/kdtree.hpp>
+#include "boost/cast.hpp"
+#include "boost/numeric/conversion/cast.hpp"
 #include "ch6/icp_2d.h"
 #include "ch6/lidar_2d_utils.h"
 #include "common/io_utils.h"
-
 DEFINE_string(bag_path, "./dataset/sad/2dmapping/floor1.bag", "数据包路径");
 DEFINE_string(method, "point2point", "2d icp方法：point2point/point2plane");
 /// 测试从rosbag中读取2d scan并plot的结果
@@ -107,7 +108,8 @@ bool ICP_my::AlignGaussNewton(Sophus::SE2d pose) {
 void ICP_my::line_fitting(std::vector<Eigen::Vector3d> data, Eigen::Vector3d lineinit, Eigen::Vector3d& line,
                           double threshold = 0.2) {
     Eigen::Vector3d origin = std::accumulate(data.begin(), data.end(), Eigen::Vector3d(0, 0, 0)) / data.size();
-    Eigen::Matrix<double, boost::numeric_cast<int>(data.size()), 3> Y;
+    const int num = data.size();
+    Eigen::MatrixXd Y(num, 3);
     for (int i = 0; i < data.size(); i++) {
         data[i] = data[i] - origin;
     }
