@@ -72,7 +72,7 @@ bool Icp2d::AlignGaussNewton(SE2& init_pose) {
             break;
         }
 
-        LOG(INFO) << "iter " << iter << " cost = " << cost << ", effect num: " << effective_num;
+        // LOG(INFO) << "iter " << iter << " cost = " << cost << ", effect num: " << effective_num;
 
         current_pose.translation() += dx.head<2>();
         current_pose.so2() = current_pose.so2() * SO2::exp(dx[2]);

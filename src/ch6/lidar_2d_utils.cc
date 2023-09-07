@@ -38,7 +38,7 @@ void Visualize2DScan(Scan2d::Ptr scan, const SE2& pose, cv::Mat& image, const Ve
     // 同时画出pose自身所在位置
     Vec2d pose_in_image =
         pose_submap.inverse() * (pose.translation()) * double(resolution) + Vec2d(image_size / 2, image_size / 2);
-    cv::circle(image, cv::Point2f(pose_in_image[0], pose_in_image[1]), 5, cv::Scalar(color[0], color[1], color[2]), 2);
+    cv::circle(image, cv::Point2f(pose_in_image[0], pose_in_image[1]), 5, cv::Scalar(color[0], color[1], color[2]), 1);
 }
 
 }  // namespace sad
