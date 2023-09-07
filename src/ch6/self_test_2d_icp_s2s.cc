@@ -24,6 +24,8 @@ class ICP_my {
     void SetSource(Scan2d::Ptr scan_sou) { scan_sou_ = scan_sou; }
     bool AlignGaussNewton(Sophus::SE2d pose);
     bool AlignGaussNewtonPoint2Plane(Sophus::SE2d pose);
+    void line_fitting(std::vector<Eigen::Vector3d> data, Eigen::Vector3d lineinit, Eigen::Vector3d& line,
+                      double threshold = 0.2);
     void BuildTree();
     Scan2d::Ptr scan_tar_;
     Scan2d::Ptr scan_sou_;
@@ -88,6 +90,77 @@ bool ICP_my::AlignGaussNewton(Sophus::SE2d pose) {
                     cost += e.transpose() * e;
                     num++;
                 }
+            }
+        }
+        if (num < 10 || cost / num > lost_threshold_ || iter == 0) return false;
+
+        Eigen::Vector3d update = H.ldlt().solve(b);
+
+        if (isnan(update[0])) return false;
+        pose.translation() += update.head<2>();
+        pose.so2() = Sophus::SO2d::exp(update[2]) * pose.so2();
+    }
+    // LOG(INFO) << "estimated pose: " << pose.translation().transpose() << ", theta: " << pose.so2().log();
+
+    return true;
+}
+void ICP_my::line_fitting(std::vector<Eigen::Vector3d> data, Eigen::Vector3d lineinit, Eigen::Vector3d& line,
+                          double threshold = 0.2) {
+    Eigen::Vector3d origin = std::accumulate(data.begin(), data.end(), Eigen::Vector3d(0, 0, 0)) / data.size();
+    Eigen::Matrix<double, boost::numeric_cast<int>(data.size()), 3> Y;
+    for (int i = 0; i < data.size(); i++) {
+        data[i] = data[i] - origin;
+    }
+    Eigen::JacobiSVD(Eigen::Matrix3d::Zero(), Eigen::ComputeFullU | Eigen::ComputeFullV);
+}
+bool ICP_my::AlignGaussNewtonPoint2Plane(Sophus::SE2d pose) {
+    pcl::PointCloud<pcl::PointXY>::Ptr cloud(new pcl::PointCloud<pcl::PointXY>);
+    int k = 10;
+    double cost;
+    int num = 0;
+    int iter_num = 5;
+    std::vector<int> nn_idx(k);
+    std::vector<float> nn_squared_distance(k);
+    for (int iter = 0; iter < iter_num; iter++) {
+        Eigen::Matrix<double, 3, 3> H = Eigen::Matrix<double, 3, 3>::Zero();
+        Eigen::Matrix<double, 3, 1> b = Eigen::Matrix<double, 3, 1>::Zero();
+        Eigen::Matrix<double, 3, 2> J = Eigen::Matrix<double, 3, 2>::Zero();
+        Eigen::Matrix<double, 2, 1> e = Eigen::Matrix<double, 2, 1>::Zero();
+        for (int i = 0; i < scan_sou_->ranges.size(); i++) {
+            if (scan_sou_->ranges[i] < scan_sou_->range_min || scan_sou_->ranges[i] > scan_sou_->range_max) continue;
+            double real_angle = scan_sou_->angle_min + i * scan_sou_->angle_increment;
+            pcl::PointXY search_point_;
+            search_point_.x = scan_sou_->ranges[i] * std::cos(real_angle);
+            search_point_.y = scan_sou_->ranges[i] * std::sin(real_angle);
+            Eigen::Vector2d search_point = pose.so2().matrix() * Eigen::Vector2d(search_point_.x, search_point_.y);
+            if (real_angle < scan_sou_->angle_min + 30 * M_PI / 180 ||
+                real_angle > scan_sou_->angle_max - 30 * M_PI / 180)
+                continue;
+            double theta = pose.so2().log();
+            pcl::PointXY pt;
+            pt.x = search_point[0];
+            pt.y = search_point[1];
+            if (kdtree.nearestKSearch(pt, k, nn_idx, nn_squared_distance) > 0) {
+                // todo 改成直线拟合
+                if (nn_idx.size() < 5) continue;
+
+                // for (size_t i = 0; i < nn_idx.size(); ++i) {
+
+                // if (!nn_squared_distance[i] < 0.01) {
+                //     continue;
+                // }
+                // std::cout << "point " << i + 1 << ", x:" << cloud->points[nn_idx[i]].x
+                //           << ", y:" << cloud->points[nn_idx[i]].y << ", distance:" << nn_squared_distance.at(i)
+                //           << ")" << std::endl;
+                // J << 1, 0, 0, 1, -scan_sou_->ranges[i] * std::sin(real_angle + theta),
+                //     scan_sou_->ranges[i] * std::cos(real_angle + theta);
+                // H += J * J.transpose();
+                // e[0] = double(pt.x - cloud->points[nn_idx[i]].x);
+                // e[1] = (pt.y - cloud->points[nn_idx[i]].y);
+                // b += -J * e;
+                // cost += e.transpose() * e;
+                // num++;
+                // }
             }
         }
         if (num < 10 || cost / num > lost_threshold_ || iter == 0) return false;
