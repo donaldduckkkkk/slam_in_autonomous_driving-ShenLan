@@ -2,11 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C++: motion_you",
+            "name": "C++: triangulation",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/you/文档/slam_in_autonomous_driving-ShenLan/bin/motion_you",
-            "args": [],
+            "program": "/home/nio/文档/slam_in_autonomous_driving-ShenLan/bin/triangulation",
+            "args": [
+                "src/ch7_slambook2/1.jpg",
+                "src/ch7_slambook2/2.jpg"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
